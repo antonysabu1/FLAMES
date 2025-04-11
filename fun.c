@@ -1,12 +1,19 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
-void removeCommonCharacters(char *name1, char *name2) {
-    int i, j;
-    for (i = 0; name1[i] != '\0'; i++) {
-        for (j = 0; name2[j] != '\0'; j++) {
-            if (name1[i] == name2[j]) {
+// Convert a string to lowercase
+void toLowerCase(char *str) {
+    for (int i = 0; str[i]; i++) {
+        str[i] = tolower(str[i]);
+    }
+}
+
+// Replace common characters in both names with '*'
+void removeCommonChars(char *name1, char *name2) {
+    for (int i = 0; name1[i] != '\0'; i++) {
+        for (int j = 0; name2[j] != '\0'; j++) {
+            if (name1[i] == name2[j] && name1[i] != '*') {
                 name1[i] = name2[j] = '*';
                 break;
             }
@@ -14,69 +21,70 @@ void removeCommonCharacters(char *name1, char *name2) {
     }
 }
 
-int countRemainingCharacters(char *name) {
-    int count = 0, i;
-    for (i = 0; name[i] != '\0'; i++) {
-        if (name[i] != '*') {
+// Count characters that are not '*'
+int countUnmatchedChars(const char *str) {
+    int count = 0;
+    for (int i = 0; str[i]; i++) {
+        if (str[i] != '*') {
             count++;
         }
     }
     return count;
 }
 
-char findFLAMES(int count) {
+// FLAMES logic to find relationship type
+char calculateFLAMES(int count) {
     char flames[] = "FLAMES";
     int length = strlen(flames);
-    int pos = 0;
+    int index = 0;
 
     while (length > 1) {
-        pos = (pos + count - 1) % length;
-        memmove(&flames[pos], &flames[pos + 1], length - pos - 1);
+        index = (index + count - 1) % length;
+
+        // Remove character at index by shifting
+        for (int i = index; i < length - 1; i++) {
+            flames[i] = flames[i + 1];
+        }
+        flames[length - 1] = '\0';
         length--;
     }
+
     return flames[0];
+}
+
+// Match final letter to relationship
+void printRelationship(char result) {
+    switch (result) {
+        case 'F': printf("💙 Result: Friends\n"); break;
+        case 'L': printf("❤️ Result: Love\n"); break;
+        case 'A': printf("💛 Result: Affection\n"); break;
+        case 'M': printf("💍 Result: Marriage\n"); break;
+        case 'E': printf("💢 Result: Enemies\n"); break;
+        case 'S': printf("👨‍👩‍👧‍👦 Result: Siblings\n"); break;
+    }
 }
 
 int main() {
     char name1[100], name2[100];
-    int count1, count2, totalRemaining;
 
     printf("Enter the first name: ");
     fgets(name1, sizeof(name1), stdin);
-    name1[strcspn(name1, "\n")] = '\0'; // Remove newline character
+    name1[strcspn(name1, "\n")] = '\0';
 
     printf("Enter the second name: ");
     fgets(name2, sizeof(name2), stdin);
-    name2[strcspn(name2, "\n")] = '\0'; // Remove newline character
+    name2[strcspn(name2, "\n")] = '\0';
 
-    removeCommonCharacters(name1, name2);
+    toLowerCase(name1);
+    toLowerCase(name2);
 
-    count1 = countRemainingCharacters(name1);
-    count2 = countRemainingCharacters(name2);
-    totalRemaining = count1 + count2;
+    removeCommonChars(name1, name2);
 
-    char relationship = findFLAMES(totalRemaining);
+    int total = countUnmatchedChars(name1) + countUnmatchedChars(name2);
 
-    switch (relationship) {
-        case 'F':
-            printf("Result: Friends\n");
-            break;
-        case 'L':
-            printf("Result: Love\n");
-            break;
-        case 'A':
-            printf("Result: Affection\n");
-            break;
-        case 'M':
-            printf("Result: Marriage\n");
-            break;
-        case 'E':
-            printf("Result: Enemies\n");
-            break;
-        case 'S':
-            printf("Result: Siblings\n");
-            break;
-    }
+    char result = calculateFLAMES(total);
+
+    printRelationship(result);
 
     return 0;
 }
